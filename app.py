@@ -26,6 +26,7 @@ import string
 import re
 from array import array
 import nltk
+from keybert import KeyBERT
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
@@ -190,7 +191,40 @@ def taking_input(user_file, db_file):
     return len(list(set(sus_term).intersection(db_term))), len(list(set(sus_bigram).intersection(db_bigram))), len(list(set(sus_trigram).intersection(db_trigram)))
 
 
-def printing_similarity(og, sus):
+def printing_similarity(og, sus, type):
+    if type == 1:
+        # join values of sus dictionary to str
+        sus = ' '.join(sus.values())
+        sus_words = sus.split()
+        suslen = len(sus_words)
+
+        sus_title = ' '.join(sus_words[0:20])
+        fivepercent = suslen*5/100
+        sus_abstract = ' '.join(sus_words[20:fivepercent])
+
+
+        kw_model = KeyBERT()
+
+        keywords = kw_model.extract_keywords(sus, keyphrase_ngram_range=(1, 3), stop_words="english", highlight=False, top_n=10)
+        keywords = ", ".join(list(dict(keywords).keys()))
+        sus_keywords = keywords
+        sevenpercent = suslen*7/100
+        sus_introduction = ' '.join(sus_words[fivepercent+1:fivepercent + sevenpercent])
+        fortyfivepercent = suslen*45/100
+        sus_proposed_method = ' '.join(sus_words[fivepercent + sevenpercent + 1: fortyfivepercent + fivepercent + sevenpercent])
+        thirtyeightpercent = suslen*38/100
+        sus_evaluation_result = ' '.join(sus_words[fortyfivepercent + fivepercent + sevenpercent + 1: thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent])
+        sus_conclusion = ' '.join(sus_words[thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent + 1:])
+    else: 
+        sus_title = sus['sus_title']
+        sus_abstract = sus['sus_abstract']
+        sus_keywords = sus['sus_keywords']
+        sus_introduction = sus['sus_introduction']
+        sus_proposed_method = sus['sus_proposed_method']
+        sus_evaluation_result = sus['sus_evaluation_result']
+        sus_conclusion = sus['sus_conclusion']
+
+
     og_title = og['og_title']
     og_abstract = og['og_abstract']
     og_keywords = og['og_keywords']
@@ -199,13 +233,6 @@ def printing_similarity(og, sus):
     og_evaluation_result = og['og_evaluation_result']
     og_conclusion = og['og_conclusion']
 
-    sus_title = sus['sus_title']
-    sus_abstract = sus['sus_abstract']
-    sus_keywords = sus['sus_keywords']
-    sus_introduction = sus['sus_introduction']
-    sus_proposed_method = sus['sus_proposed_method']
-    sus_evaluation_result = sus['sus_evaluation_result']
-    sus_conclusion = sus['sus_conclusion']
 
     og = [og_title, og_abstract, og_keywords, og_introduction,
           og_proposed_method, og_evaluation_result, og_conclusion]
@@ -277,7 +304,7 @@ async def mainfunction(info: Info):
 
     print("-------------------------", info)
     # google_similarity_score = google_search_result(info['sus'])
-    similarity_score = printing_similarity(info['og'], info['sus'])
+    similarity_score = printing_similarity(info['og'], info['sus'], info['type'])
     # , "google_similarity_score": google_similarity_score
     # print(google_similarity_score)
     return {"similarity_score": similarity_score}
