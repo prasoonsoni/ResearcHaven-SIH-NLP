@@ -199,7 +199,7 @@ def printing_similarity(og, sus, type):
         suslen = len(sus_words)
 
         sus_title = ' '.join(sus_words[0:20])
-        fivepercent = suslen*5/100
+        fivepercent = int(suslen*5/100)
         sus_abstract = ' '.join(sus_words[20:fivepercent])
 
 
@@ -208,11 +208,11 @@ def printing_similarity(og, sus, type):
         keywords = kw_model.extract_keywords(sus, keyphrase_ngram_range=(1, 3), stop_words="english", highlight=False, top_n=10)
         keywords = ", ".join(list(dict(keywords).keys()))
         sus_keywords = keywords
-        sevenpercent = suslen*7/100
+        sevenpercent = int(suslen*7/100)
         sus_introduction = ' '.join(sus_words[fivepercent+1:fivepercent + sevenpercent])
-        fortyfivepercent = suslen*45/100
+        fortyfivepercent = int(suslen*45/100)
         sus_proposed_method = ' '.join(sus_words[fivepercent + sevenpercent + 1: fortyfivepercent + fivepercent + sevenpercent])
-        thirtyeightpercent = suslen*38/100
+        thirtyeightpercent = int(suslen*38/100)
         sus_evaluation_result = ' '.join(sus_words[fortyfivepercent + fivepercent + sevenpercent + 1: thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent])
         sus_conclusion = ' '.join(sus_words[thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent + 1:])
     else: 
@@ -290,6 +290,7 @@ app.add_middleware(
 class Info(BaseModel):
     og: dict
     sus: dict
+    type:int
 
 
 @app.post("/test/")
