@@ -4,6 +4,10 @@
 # !pip install spacy
 # !pip install ahpy
 
+import statistics
+from difflib import SequenceMatcher
+from googleapiclient.discovery import build
+import sys
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -27,11 +31,6 @@ nltk.download('stopwords')
 nltk.download('wordnet')
 nltk.download('omw-1.4')
 nltk.download('averaged_perceptron_tagger')
-import sys
-from googleapiclient.discovery import build
-from difflib import SequenceMatcher
-import statistics
-
 
 my_api_key = "AIzaSyDaS_yp6jSkBET9Z5ozTpjfFtb6C2pvYB8"
 my_cse_id = "037c2615c9b2e4e0f"
@@ -45,18 +44,19 @@ def google_search_result(sus):
     sus_evaluation_result = sus['sus_evaluation_result']
     sus_conclusion = sus['sus_conclusion']
 
-    sus = sus_title + ' ' + sus_abstract + ' ' + sus_keywords + ' ' + sus_introduction + ' ' + sus_proposed_method + ' ' + sus_evaluation_result + ' ' + sus_conclusion
+    sus = sus_title + ' ' + sus_abstract + ' ' + sus_keywords + ' ' + sus_introduction + \
+        ' ' + sus_proposed_method + ' ' + sus_evaluation_result + ' ' + sus_conclusion
 
     def google_search(searching_for, api_key, cse_id, **kwargs):
         service = build("customsearch", "v1", developerKey=api_key)
         res = service.cse().list(q=searching_for, cx=cse_id, **kwargs).execute()
         return res
 
-
     def snippet_confidence(web_snippet, orig_chunk):
         web_snippet = web_snippet.replace('\n', '')
         orig_chunk = orig_chunk.replace('\n', '')
-        match = SequenceMatcher(None, web_snippet, orig_chunk).find_longest_match(0, len(web_snippet), 0, len(orig_chunk))
+        match = SequenceMatcher(None, web_snippet, orig_chunk).find_longest_match(
+            0, len(web_snippet), 0, len(orig_chunk))
         match = web_snippet[match.a: match.a + match.size]
         diff = round(len(match) / len(web_snippet), 2)
         return diff
@@ -66,37 +66,15 @@ def google_search_result(sus):
         print('Average Score: ', mean)
         if 1.0 in confidence:
             return 1
-            # print('PLAGIARISM DETECTED!! \n An exact match was found in your document \n Better call your lawyer...')
         elif mean >= 0.50:
             return mean
-            # print('PLAGIARISM DETECTED!! \n A significant similarity was found in your document \n Better call your lawyer...')
-            # print('PLAGIARISM DETECTED!! \n Average score exceeded the threshold \n Better call your lawyer..')
         else:
             return mean
-            # print('Looks like your document is OK:)')
 
-    # def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
-    #     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    #     filledLength = int(length * iteration // total)
-    #     bar = fill * filledLength + '-' * (length - filledLength)
-    #     print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end = printEnd)
-    #     # Print New Line on Complete
-    #     if iteration == total: 
-    #         print()
-
-    # print("Welcome to plagiarism checker!\n")
-    # if len(sys.argv) <= 1:
-    #     #print('A command line argument is required to run the script. Please specify a file to check.')
-    #     filename = sus
-    # else:
-    #     filename = sys.argv[1]
-    #     print('Checking %s for plagiarism...\n' % (filename))
-    # with open(filename, 'r') as file:
-    #     start = 0
-    #     end = 33
-    #     data = file.read().split()
     data = sus
     chunks = list()
+    end=33
+    start = 0
     while end < len(data):
         chunk = ' '.join(data[start:end])
         chunks.append(chunk)
@@ -109,7 +87,6 @@ def google_search_result(sus):
     confidence = []
     itr = 1
     for chunk in chunks:
-        # printProgressBar(itr, len(chunks))
         response = google_search(str(chunk), my_api_key, my_cse_id)
         num_results = response.get('searchInformation').get('totalResults')
         if num_results != '0':
@@ -118,8 +95,6 @@ def google_search_result(sus):
                 confidence.append(snippet_confidence(web_snippet, str(chunk)))
         itr = itr + 1
     return calculate_score(confidence)
-
-
 
 
 # perform preprocessing on input data to get cleaned data
@@ -248,25 +223,8 @@ def printing_similarity(og, sus):
         C[param + '_' + noOfterms[0]] = temp1
         C[param + '_' + noOfterms[1]] = temp2
         C[param + '_' + noOfterms[2]] = temp3
-
-    # pairwise_comparisons = {('title', 'abstract'): 7, ('title', 'keywords'): 7, ('title', 'introduction'): 9, ('title', 'proposed_method'): 8,
-    #                         ('title', 'evaluation_result'): 8, ('title', 'conclusion'): 7,
-    #                         ('abstract', 'keywords'): 1, ('abstract', 'introduction'): 5, ('abstract', 'proposed_method'): 3,
-    #                         ('abstract', 'evaluation_result'): 3, ('abstract', 'conclusion'): 1,
-    #                         ('keywords', 'introduction'): 5, ('keywords', 'proposed_method'): 3, ('keywords', 'evaluation_result'): 3,
-    #                         ('keywords', 'conclusion'): 1,
-    #                         ('introduction', 'proposed_method'): 0.5, ('introduction', 'evaluation_result'): 0.5, ('introduction', 'conclusion'): 0.33,
-    #                         ('proposed_method', 'evaluation_result'): 1, ('proposed_method', 'conclusion'): 0.5,
-    #                         ('evaluation_result', 'conclusion'): 0.5}
-
-    # pairwise_comparisons2 = {('candidate_set', '2termset'): 0.14, (
-    #     'candidate_set', '3termset'): 0.11, ('2termset', '3termset'): 0.14}
-    # compare = ahpy.Compare(
-    #     name='compare', comparisons=pairwise_comparisons, precision=3, random_index='saaty')
-    # compare2 = ahpy.Compare(
-    #     name='compare2', comparisons=pairwise_comparisons2, precision=3, random_index='saaty')
-
-    weights = {'title': 0.541, 'abstract': 0.118, 'keywords': 0.118, 'conclusion': 0.096, 'proposed_method': 0.049, 'evaluation_result': 0.049, 'introduction': 0.03}
+    weights = {'title': 0.541, 'abstract': 0.118, 'keywords': 0.118, 'conclusion': 0.096,
+               'proposed_method': 0.049, 'evaluation_result': 0.049, 'introduction': 0.03}
     weights2 = {'candidate_set': 0.047, '2termset': 0.19, '3termset': 0.763}
     weights2 = dict(reversed(list(weights2.items())))
     print(weights2)
@@ -306,9 +264,11 @@ class Info(BaseModel):
     og: dict
     sus: dict
 
+
 @app.post("/test/")
 def func():
     return {"message": "Hello World"}
+
 
 @app.post("/checkplagiarism/")
 async def mainfunction(info: Info):
@@ -316,6 +276,8 @@ async def mainfunction(info: Info):
     info = info.dict()
 
     print("-------------------------", info)
-    google_similarity_score = google_search_result(info['sus'])
+    # google_similarity_score = google_search_result(info['sus'])
     similarity_score = printing_similarity(info['og'], info['sus'])
-    return {"similarity_score": similarity_score,"google_similarity_score": google_similarity_score}
+    # , "google_similarity_score": google_similarity_score
+    # print(google_similarity_score)
+    return {"similarity_score": similarity_score}
