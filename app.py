@@ -9,18 +9,13 @@ from difflib import SequenceMatcher
 from googleapiclient.discovery import build
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from fastapi import FastAPI
 from nltk.tokenize import sent_tokenize
 from nltk.tokenize import word_tokenize
 from nltk.corpus import wordnet
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-from spacy.lang.en.stop_words import STOP_WORDS
-import numpy as np
-import pandas as pd
 import string
-from array import array
 import nltk
 import yake
 nltk.download('punkt')
@@ -241,7 +236,6 @@ def printing_similarity(og, sus, type):
 
     for i, param in enumerate(paper_parameters):
         temp1, temp2, temp3 = taking_input(sus[i], og[i])
-        print(temp1, temp2, temp3)
         C[param + '_' + noOfterms[0]] = temp1
         C[param + '_' + noOfterms[1]] = temp2
         C[param + '_' + noOfterms[2]] = temp3
@@ -249,7 +243,6 @@ def printing_similarity(og, sus, type):
                'proposed_method': 0.049, 'evaluation_result': 0.049, 'introduction': 0.03}
     weights2 = {'candidate_set': 0.047, '2termset': 0.19, '3termset': 0.763}
     weights2 = dict(reversed(list(weights2.items())))
-    print(weights2)
     similarity_score = 0
     sus = sus_title + sus_abstract + sus_keywords + sus_introduction + \
         sus_proposed_method + sus_evaluation_result + sus_conclusion
@@ -257,14 +250,8 @@ def printing_similarity(og, sus, type):
     suslen = len(sus_words)
     for i in weights.keys():
         for j in weights2.keys():
-            print("w: ", weights[i])
-            print("w2: ", weights2[j])
-            print("C: ", C[i+'_'+j])
             similarity_score += weights[i] * weights2[j] * C[i + '_' + j]
     wk = sum(weights.values()) + sum(weights2.values())
-    print(wk)
-    print(similarity_score)
-    print(suslen)
     similarity_score = similarity_score / (0.05*suslen)
     print(similarity_score)
     return similarity_score
