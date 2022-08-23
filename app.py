@@ -19,11 +19,10 @@ from nltk.stem import WordNetLemmatizer
 from spacy.lang.en.stop_words import STOP_WORDS
 import numpy as np
 import pandas as pd
-from difflib import SequenceMatcher
 import string
 from array import array
 import nltk
-from keybert import KeyBERT
+import yake
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
@@ -71,7 +70,7 @@ def google_search_result(sus):
 
     data = sus
     chunks = list()
-    end = 33
+    end=33
     start = 0
     while end < len(data):
         chunk = ' '.join(data[start:end])
@@ -199,24 +198,19 @@ def printing_similarity(og, sus, type):
         fivepercent = int(suslen*5/100)
         sus_abstract = ' '.join(sus_words[20:fivepercent])
 
-        kw_model = KeyBERT()
 
-        keywords = kw_model.extract_keywords(sus, keyphrase_ngram_range=(
-            1, 3), stop_words="english", highlight=False, top_n=10)
+        kw_extractor = yake.KeywordExtractor(top=10, stopwords=None)
+        keywords = kw_extractor.extract_keywords(sus)
         keywords = ", ".join(list(dict(keywords).keys()))
         sus_keywords = keywords
         sevenpercent = int(suslen*7/100)
-        sus_introduction = ' '.join(
-            sus_words[fivepercent+1:fivepercent + sevenpercent])
+        sus_introduction = ' '.join(sus_words[fivepercent+1:fivepercent + sevenpercent])
         fortyfivepercent = int(suslen*45/100)
-        sus_proposed_method = ' '.join(
-            sus_words[fivepercent + sevenpercent + 1: fortyfivepercent + fivepercent + sevenpercent])
+        sus_proposed_method = ' '.join(sus_words[fivepercent + sevenpercent + 1: fortyfivepercent + fivepercent + sevenpercent])
         thirtyeightpercent = int(suslen*38/100)
-        sus_evaluation_result = ' '.join(
-            sus_words[fortyfivepercent + fivepercent + sevenpercent + 1: thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent])
-        sus_conclusion = ' '.join(
-            sus_words[thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent + 1:])
-    else:
+        sus_evaluation_result = ' '.join(sus_words[fortyfivepercent + fivepercent + sevenpercent + 1: thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent])
+        sus_conclusion = ' '.join(sus_words[thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent + 1:])
+    else: 
         sus_title = sus['sus_title']
         sus_abstract = sus['sus_abstract']
         sus_keywords = sus['sus_keywords']
@@ -225,6 +219,7 @@ def printing_similarity(og, sus, type):
         sus_evaluation_result = sus['sus_evaluation_result']
         sus_conclusion = sus['sus_conclusion']
 
+
     og_title = og['og_title']
     og_abstract = og['og_abstract']
     og_keywords = og['og_keywords']
@@ -232,6 +227,7 @@ def printing_similarity(og, sus, type):
     og_proposed_method = og['og_proposed_method']
     og_evaluation_result = og['og_evaluation_result']
     og_conclusion = og['og_conclusion']
+
 
     og = [og_title, og_abstract, og_keywords, og_introduction,
           og_proposed_method, og_evaluation_result, og_conclusion]
@@ -289,7 +285,7 @@ app.add_middleware(
 class Info(BaseModel):
     og: dict
     sus: dict
-    type: int
+    type:int
 
 
 @app.post("/test/")
