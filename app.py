@@ -7,7 +7,6 @@
 import statistics
 from difflib import SequenceMatcher
 from googleapiclient.discovery import build
-import sys
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -18,12 +17,9 @@ from nltk.corpus import wordnet
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from spacy.lang.en.stop_words import STOP_WORDS
-import ahpy
-import spacy
 import numpy as np
 import pandas as pd
 import string
-import re
 from array import array
 import nltk
 from keybert import KeyBERT
