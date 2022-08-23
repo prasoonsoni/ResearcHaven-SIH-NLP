@@ -33,15 +33,6 @@ nltk.download('averaged_perceptron_tagger')
 my_api_key = "AIzaSyDaS_yp6jSkBET9Z5ozTpjfFtb6C2pvYB8"
 my_cse_id = "037c2615c9b2e4e0f"
 
-
-def research_plag_check(sus, og):
-    sus_reference = sus['sus_reference']
-    og_reference = og['sus_reference']
-    similarity_ratio = SequenceMatcher(
-        None, sus_reference, og_reference).ratio()
-    return {"references_plag_check": similarity_ratio}
-
-
 def google_search_result(sus):
     sus_title = sus['sus_title']
     sus_abstract = sus['sus_abstract']
@@ -317,9 +308,3 @@ async def mainfunction(info: Info):
     # , "google_similarity_score": google_similarity_score
     # print(google_similarity_score)
     return {"similarity_score": similarity_score}
-
-@app.post("/referencesplagiarism/")
-async def func(info:Info):
-    info = info.dict()
-    score = research_plag_check(info['sus'], info['og']);
-    return {"references_similarity_score": score}
