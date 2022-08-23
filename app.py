@@ -19,6 +19,7 @@ from nltk.stem import WordNetLemmatizer
 from spacy.lang.en.stop_words import STOP_WORDS
 import numpy as np
 import pandas as pd
+from difflib import SequenceMatcher
 import string
 from array import array
 import nltk
@@ -31,6 +32,15 @@ nltk.download('averaged_perceptron_tagger')
 
 my_api_key = "AIzaSyDaS_yp6jSkBET9Z5ozTpjfFtb6C2pvYB8"
 my_cse_id = "037c2615c9b2e4e0f"
+
+
+def research_plag_check(sus, og):
+    sus_reference = sus['sus_reference']
+    og_reference = og['sus_reference']
+    similarity_ratio = SequenceMatcher(
+        None, sus_reference, og_reference).ratio()
+    return {"references_plag_check": similarity_ratio}
+
 
 def google_search_result(sus):
     sus_title = sus['sus_title']
@@ -70,7 +80,7 @@ def google_search_result(sus):
 
     data = sus
     chunks = list()
-    end=33
+    end = 33
     start = 0
     while end < len(data):
         chunk = ' '.join(data[start:end])
@@ -198,20 +208,24 @@ def printing_similarity(og, sus, type):
         fivepercent = int(suslen*5/100)
         sus_abstract = ' '.join(sus_words[20:fivepercent])
 
-
         kw_model = KeyBERT()
 
-        keywords = kw_model.extract_keywords(sus, keyphrase_ngram_range=(1, 3), stop_words="english", highlight=False, top_n=10)
+        keywords = kw_model.extract_keywords(sus, keyphrase_ngram_range=(
+            1, 3), stop_words="english", highlight=False, top_n=10)
         keywords = ", ".join(list(dict(keywords).keys()))
         sus_keywords = keywords
         sevenpercent = int(suslen*7/100)
-        sus_introduction = ' '.join(sus_words[fivepercent+1:fivepercent + sevenpercent])
+        sus_introduction = ' '.join(
+            sus_words[fivepercent+1:fivepercent + sevenpercent])
         fortyfivepercent = int(suslen*45/100)
-        sus_proposed_method = ' '.join(sus_words[fivepercent + sevenpercent + 1: fortyfivepercent + fivepercent + sevenpercent])
+        sus_proposed_method = ' '.join(
+            sus_words[fivepercent + sevenpercent + 1: fortyfivepercent + fivepercent + sevenpercent])
         thirtyeightpercent = int(suslen*38/100)
-        sus_evaluation_result = ' '.join(sus_words[fortyfivepercent + fivepercent + sevenpercent + 1: thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent])
-        sus_conclusion = ' '.join(sus_words[thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent + 1:])
-    else: 
+        sus_evaluation_result = ' '.join(
+            sus_words[fortyfivepercent + fivepercent + sevenpercent + 1: thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent])
+        sus_conclusion = ' '.join(
+            sus_words[thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent + 1:])
+    else:
         sus_title = sus['sus_title']
         sus_abstract = sus['sus_abstract']
         sus_keywords = sus['sus_keywords']
@@ -220,7 +234,6 @@ def printing_similarity(og, sus, type):
         sus_evaluation_result = sus['sus_evaluation_result']
         sus_conclusion = sus['sus_conclusion']
 
-
     og_title = og['og_title']
     og_abstract = og['og_abstract']
     og_keywords = og['og_keywords']
@@ -228,7 +241,6 @@ def printing_similarity(og, sus, type):
     og_proposed_method = og['og_proposed_method']
     og_evaluation_result = og['og_evaluation_result']
     og_conclusion = og['og_conclusion']
-
 
     og = [og_title, og_abstract, og_keywords, og_introduction,
           og_proposed_method, og_evaluation_result, og_conclusion]
@@ -286,7 +298,7 @@ app.add_middleware(
 class Info(BaseModel):
     og: dict
     sus: dict
-    type:int
+    type: int
 
 
 @app.post("/test/")
@@ -305,3 +317,9 @@ async def mainfunction(info: Info):
     # , "google_similarity_score": google_similarity_score
     # print(google_similarity_score)
     return {"similarity_score": similarity_score}
+
+@app.post("/referencesplagiarism/")
+async def func(info:Info):
+    info = info.dict()
+    score = research_plag_check(info['sus'], info['og']);
+    return {"references_similarity_score": score}
