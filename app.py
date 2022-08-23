@@ -22,7 +22,6 @@ import pandas as pd
 import string
 from array import array
 import nltk
-from keybert import KeyBERT
 import yake
 nltk.download('punkt')
 nltk.download('stopwords')
