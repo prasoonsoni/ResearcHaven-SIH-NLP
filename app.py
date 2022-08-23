@@ -23,6 +23,7 @@ import string
 from array import array
 import nltk
 from keybert import KeyBERT
+import yake
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
@@ -199,9 +200,8 @@ def printing_similarity(og, sus, type):
         sus_abstract = ' '.join(sus_words[20:fivepercent])
 
 
-        kw_model = KeyBERT()
-
-        keywords = kw_model.extract_keywords(sus, keyphrase_ngram_range=(1, 3), stop_words="english", highlight=False, top_n=10)
+        kw_extractor = yake.KeywordExtractor(top=10, stopwords=None)
+        keywords = kw_extractor.extract_keywords(sus)
         keywords = ", ".join(list(dict(keywords).keys()))
         sus_keywords = keywords
         sevenpercent = int(suslen*7/100)
