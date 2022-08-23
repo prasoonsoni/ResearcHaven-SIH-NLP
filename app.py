@@ -18,6 +18,7 @@ from nltk.stem import WordNetLemmatizer
 import string
 import nltk
 import yake
+from difflib import SequenceMatcher
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
@@ -88,6 +89,12 @@ def google_search_result(sus):
         itr = itr + 1
     return calculate_score(confidence)
 
+def references_check(sus, og):
+    sus_reference = sus['sus_reference']
+    og_reference = og['og_reference']
+    similarity_ratio = SequenceMatcher(
+        None, sus_reference, og_reference).ratio()
+    return {"references_plag_check": similarity_ratio}
 
 # perform preprocessing on input data to get cleaned data
 def preprocess(input_file):
@@ -291,3 +298,10 @@ async def mainfunction(info: Info):
     # , "google_similarity_score": google_similarity_score
     # print(google_similarity_score)
     return {"similarity_score": similarity_score}
+
+@app.post("/referencesplagiarism/")
+async def func(info:Info):
+    info = info.dict()
+    score = references_check(info['sus'], info['og']);
+    return score
+
