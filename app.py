@@ -192,7 +192,8 @@ def taking_input(user_file, db_file):
 def printing_similarity(og, sus, type):
     if type == 1:
         # join values of sus dictionary to str
-        sus = ' '.join(sus.values())
+        sus = sus['data']
+        # sus = ' '.join(sus.values())
         sus_words = sus.split()
         suslen = len(sus_words)
 
@@ -294,6 +295,7 @@ async def mainfunction(info: Info):
 
     print("-------------------------", info)
     # google_similarity_score = google_search_result(info['sus'])
+    # Type 1 is file upload else its normal
     similarity_score = printing_similarity(info['og'], info['sus'], info['type'])
     # , "google_similarity_score": google_similarity_score
     # print(google_similarity_score)
@@ -304,4 +306,3 @@ async def func(info:Info):
     info = info.dict()
     score = references_check(info['sus'], info['og']);
     return score
-
