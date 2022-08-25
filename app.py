@@ -28,7 +28,9 @@ nltk.download('averaged_perceptron_tagger')
 
 # my_api_key = "AIzaSyDaS_yp6jSkBET9Z5ozTpjfFtb6C2pvYB8"
 # my_cse_id = "037c2615c9b2e4e0f"
-my_api_key = "AIzaSyCHee8_tp0jA6i4Ui7IrLR6SE_6RxqD0Wo"
+# my_api_key = "AIzaSyCHee8_tp0jA6i4Ui7IrLR6SE_6RxqD0Wo"
+# my_cse_id = "6158cb9ed9567478b"
+my_api_key = "AIzaSyBFz93EhgN2_lOXTSEec26Cc-uja0Tr-9g"
 my_cse_id = "6158cb9ed9567478b"
 
 def google_search_result(sus,type):
@@ -63,13 +65,23 @@ def google_search_result(sus,type):
         confidence = dict(sorted(confidence.items(), key=lambda x: x[1], reverse=True))
         print('Average Score: ', mean)
         # check if any value in confidence is greater than 0.9
-        if any(x > 0.9 for x in confidence.values()):
-            confidence=dict(list(confidence.items())[:10])
+        # if any(x > 0.9 for x in confidence.values()):
+        #     confidence=dict(list(confidence.items())[:10])
+        #     return 1, dict(list(confidence.items())[:10])
+        # elif mean >= 0.50:
+        #     return mean, dict(list(confidence.items())[:10])
+        # else:
+        #     return mean, dict(list(confidence.items())[:10])
+        counter = 0
+        for value in confidence.values():
+            if value > 0.8:
+                counter+=1
+        print(len(confidence))
+        if counter/len(confidence) > 0.3:
             return 1, dict(list(confidence.items())[:10])
-        elif mean >= 0.50:
-            return mean, dict(list(confidence.items())[:10])
         else:
             return mean, dict(list(confidence.items())[:10])
+
 
     data = sus.split()
     chunks = list()
@@ -88,7 +100,7 @@ def google_search_result(sus,type):
     itr = 1
     for chunk in chunks:
         print("chunk: ",chunk)
-        if itr > 1:
+        if itr > 3:
             break
         response = google_search(str(chunk), my_api_key, my_cse_id)
         num_results = response.get('searchInformation').get('totalResults')
