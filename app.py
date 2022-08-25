@@ -30,16 +30,16 @@ my_api_key = "AIzaSyDaS_yp6jSkBET9Z5ozTpjfFtb6C2pvYB8"
 my_cse_id = "037c2615c9b2e4e0f"
 
 def google_search_result(sus):
-    sus_title = sus['sus_title']
-    sus_ps_obj = sus['sus_ps_obj']
-    sus_keywords = sus['sus_keywords']
-    sus_introduction = sus['sus_introduction']
-    sus_proposed_method = sus['sus_proposed_method']
-    # sus_evaluation_result = sus['sus_evaluation_result']
-    # sus_conclusion = sus['sus_conclusion']
-
-    sus = sus_title + ' ' + sus_ps_obj + ' ' + sus_keywords + ' ' + sus_introduction + \
-        ' ' + sus_proposed_method 
+    if type == 1:
+        # join values of sus dictionary to str
+        sus = sus['data']
+    else: 
+        sus_title = sus['sus_title']
+        sus_ps_obj = sus['sus_ps_obj']
+        sus_keywords = sus['sus_keywords']
+        sus_introduction = sus['sus_introduction']
+        sus_proposed_method = sus['sus_proposed_method']
+        sus = sus_title + ' ' + sus_ps_obj + ' ' + sus_keywords + ' ' + sus_introduction + ' ' + sus_proposed_method 
 
     def google_search(searching_for, api_key, cse_id, **kwargs):
         service = build("customsearch", "v1", developerKey=api_key)
@@ -72,8 +72,8 @@ def google_search_result(sus):
     while end < len(data):
         chunk = ' '.join(data[start:end])
         chunks.append(chunk)
-        end = end + 33
-        start = start + 33
+        end = end + 30
+        start = start + 30
         if end > len(data):
             end = len(data)
             chunk = data[start:end]
@@ -321,12 +321,12 @@ async def mainfunction(info: Info):
     info = info.dict()
 
     print("-------------------------", info)
-    # google_similarity_score = google_search_result(info['sus'])
+    google_similarity_score = google_search_result(info['sus'])
     # Type 1 is file upload else its normal
     similarity_score = printing_similarity(info['og'], info['sus'], info['type'])
     # , "google_similarity_score": google_similarity_score
-    # print(google_similarity_score)
-    return {"similarity_score": similarity_score}
+    print(google_similarity_score)
+    return {"similarity_score": similarity_score, "google_similarity_score": google_similarity_score}
 @app.post("/level1plagiarism/")
 async def func(info:Info):
     info = info.dict()
