@@ -16,6 +16,7 @@ from nltk.corpus import wordnet
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import string
+import ahpy
 import nltk
 import yake
 from difflib import SequenceMatcher
@@ -30,15 +31,15 @@ my_cse_id = "037c2615c9b2e4e0f"
 
 def google_search_result(sus):
     sus_title = sus['sus_title']
-    sus_abstract = sus['sus_abstract']
+    sus_ps_obj = sus['sus_ps_obj']
     sus_keywords = sus['sus_keywords']
     sus_introduction = sus['sus_introduction']
     sus_proposed_method = sus['sus_proposed_method']
-    sus_evaluation_result = sus['sus_evaluation_result']
-    sus_conclusion = sus['sus_conclusion']
+    # sus_evaluation_result = sus['sus_evaluation_result']
+    # sus_conclusion = sus['sus_conclusion']
 
-    sus = sus_title + ' ' + sus_abstract + ' ' + sus_keywords + ' ' + sus_introduction + \
-        ' ' + sus_proposed_method + ' ' + sus_evaluation_result + ' ' + sus_conclusion
+    sus = sus_title + ' ' + sus_ps_obj + ' ' + sus_keywords + ' ' + sus_introduction + \
+        ' ' + sus_proposed_method 
 
     def google_search(searching_for, api_key, cse_id, **kwargs):
         service = build("customsearch", "v1", developerKey=api_key)
@@ -64,9 +65,9 @@ def google_search_result(sus):
         else:
             return mean
 
-    data = sus
+    data = sus.split()
     chunks = list()
-    end=33
+    end=30
     start = 0
     while end < len(data):
         chunk = ' '.join(data[start:end])
@@ -80,21 +81,37 @@ def google_search_result(sus):
     confidence = []
     itr = 1
     for chunk in chunks:
+        print("chunk: ",chunk)
+        if itr > 25:
+            break
         response = google_search(str(chunk), my_api_key, my_cse_id)
         num_results = response.get('searchInformation').get('totalResults')
         if num_results != '0':
             for item in response.get('items'):
                 web_snippet = ''.join(item['snippet'][0:203])
+                print("web_snippet: ",web_snippet)
                 confidence.append(snippet_confidence(web_snippet, str(chunk)))
         itr = itr + 1
     return calculate_score(confidence)
 
-def references_check(sus, og):
-    sus_reference = sus['sus_reference']
-    og_reference = og['og_reference']
-    similarity_ratio = SequenceMatcher(
-        None, sus_reference, og_reference).ratio()
-    return {"references_plag_check": similarity_ratio}
+def level1_check(sus, og):
+    sus_bibliography = sus['sus_bibliography']
+    sus_literature_review = sus['sus_literature_review']
+    sus_keywords = sus['sus_keywords']
+    og_bibliography = og['og_bibliography']
+    og_literature_review = og['og_literature_review']
+    og_keywords = og['og_keywords']
+
+    similarity_ratio1 = SequenceMatcher(
+        None, sus_bibliography, og_bibliography).ratio()
+    similarity_ratio2 = SequenceMatcher(
+        None, sus_literature_review, og_literature_review).ratio()
+    similarity_ratio3 = SequenceMatcher(
+        None, sus_keywords, og_keywords).ratio()
+    
+    similarity_ratio = similarity_ratio1 * 0.4 + similarity_ratio2 * 0.5 + similarity_ratio3 * 0.1
+    print(similarity_ratio1,similarity_ratio2,similarity_ratio3)
+    return {"level1_check": similarity_ratio}
 
 # perform preprocessing on input data to get cleaned data
 def preprocess(input_file):
@@ -199,7 +216,7 @@ def printing_similarity(og, sus, type):
 
         sus_title = ' '.join(sus_words[0:20])
         fivepercent = int(suslen*5/100)
-        sus_abstract = ' '.join(sus_words[20:fivepercent])
+        sus_ps_obj = ' '.join(sus_words[20:fivepercent])
 
 
         kw_extractor = yake.KeywordExtractor(top=10, stopwords=None)
@@ -211,35 +228,35 @@ def printing_similarity(og, sus, type):
         fortyfivepercent = int(suslen*45/100)
         sus_proposed_method = ' '.join(sus_words[fivepercent + sevenpercent + 1: fortyfivepercent + fivepercent + sevenpercent])
         thirtyeightpercent = int(suslen*38/100)
-        sus_evaluation_result = ' '.join(sus_words[fortyfivepercent + fivepercent + sevenpercent + 1: thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent])
-        sus_conclusion = ' '.join(sus_words[thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent + 1:])
+        # sus_evaluation_result = ' '.join(sus_words[fortyfivepercent + fivepercent + sevenpercent + 1: thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent])
+        # sus_conclusion = ' '.join(sus_words[thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent + 1:])
     else: 
         sus_title = sus['sus_title']
-        sus_abstract = sus['sus_abstract']
+        sus_ps_obj = sus['sus_ps_obj']
         sus_keywords = sus['sus_keywords']
         sus_introduction = sus['sus_introduction']
         sus_proposed_method = sus['sus_proposed_method']
-        sus_evaluation_result = sus['sus_evaluation_result']
-        sus_conclusion = sus['sus_conclusion']
+        # sus_evaluation_result = sus['sus_evaluation_result']
+        # sus_conclusion = sus['sus_conclusion']
 
 
     og_title = og['og_title']
-    og_abstract = og['og_abstract']
+    og_ps_obj = og['og_ps_obj']
     og_keywords = og['og_keywords']
     og_introduction = og['og_introduction']
     og_proposed_method = og['og_proposed_method']
-    og_evaluation_result = og['og_evaluation_result']
-    og_conclusion = og['og_conclusion']
+    # og_evaluation_result = og['og_evaluation_result']
+    # og_conclusion = og['og_conclusion']
 
 
-    og = [og_title, og_abstract, og_keywords, og_introduction,
-          og_proposed_method, og_evaluation_result, og_conclusion]
-    sus = [sus_title, sus_abstract, sus_keywords, sus_introduction,
-           sus_proposed_method, sus_evaluation_result, sus_conclusion]
+    og = [og_title, og_ps_obj, og_keywords, og_introduction,
+          og_proposed_method]
+    sus = [sus_title, sus_ps_obj, sus_keywords, sus_introduction,
+           sus_proposed_method]
 
     C = {}
-    paper_parameters = ["title", "abstract", "keywords", "introduction",
-                        "proposed_method", "evaluation_result", "conclusion"]
+    paper_parameters = ["title", "ps_obj", "keywords", "introduction",
+                        "proposed_method"]
     noOfterms = ['candidate_set', '2termset', '3termset']
 
     for i, param in enumerate(paper_parameters):
@@ -247,13 +264,25 @@ def printing_similarity(og, sus, type):
         C[param + '_' + noOfterms[0]] = temp1
         C[param + '_' + noOfterms[1]] = temp2
         C[param + '_' + noOfterms[2]] = temp3
-    weights = {'title': 0.541, 'abstract': 0.118, 'keywords': 0.118, 'conclusion': 0.096,
-               'proposed_method': 0.049, 'evaluation_result': 0.049, 'introduction': 0.03}
-    weights2 = {'candidate_set': 0.047, '2termset': 0.19, '3termset': 0.763}
+    
+    pairwise_comparisons ={('title', 'ps_obj'): 7, ('title', 'keywords'): 7, ('title', 'introduction'): 9, ('title', 'proposed_method'): 8, 
+                         ('ps_obj', 'keywords'): 1, ('ps_obj', 'introduction'): 5, ('ps_obj', 'proposed_method'): 3,
+                         ('keywords', 'introduction'): 5, ('keywords', 'proposed_method'): 3,
+                         ('introduction', 'proposed_method'): 0.5}
+
+
+    pairwise_comparisons2={('candidate_set', '2termset'): 0.14, ('candidate_set', '3termset'): 0.11, ('2termset', '3termset'):0.14}
+    compare = ahpy.Compare(name='compare',comparisons= pairwise_comparisons, precision=3,random_index='saaty')
+    compare2 = ahpy.Compare(name='compare2',comparisons= pairwise_comparisons2, precision=3,random_index='saaty')
+    weights = compare.target_weights
+    weights2 = compare2.target_weights
+
+    # weights = {'title': 0.541, 'ps_obj': 0.118, 'keywords': 0.118, 'conclusion': 0.096,
+    #            'proposed_method': 0.049, 'evaluation_result': 0.049, 'introduction': 0.03}
+    # weights2 = {'candidate_set': 0.047, '2termset': 0.19, '3termset': 0.763}
     weights2 = dict(reversed(list(weights2.items())))
     similarity_score = 0
-    sus = sus_title + sus_abstract + sus_keywords + sus_introduction + \
-        sus_proposed_method + sus_evaluation_result + sus_conclusion
+    sus = sus_title + sus_ps_obj + sus_keywords + sus_introduction + sus_proposed_method
     sus_words = sus.split()
     suslen = len(sus_words)
     for i in weights.keys():
@@ -300,9 +329,8 @@ async def mainfunction(info: Info):
     # , "google_similarity_score": google_similarity_score
     # print(google_similarity_score)
     return {"similarity_score": similarity_score}
-
-@app.post("/referencesplagiarism/")
+@app.post("/level1plagiarism/")
 async def func(info:Info):
     info = info.dict()
-    score = references_check(info['sus'], info['og']);
+    score = level1_check(info['sus'], info['og']);
     return score

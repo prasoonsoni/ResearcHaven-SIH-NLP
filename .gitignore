@@ -1,2 +1,4 @@
+.gitignore
 venv
 __pycache__
+test_research_paper.txt
