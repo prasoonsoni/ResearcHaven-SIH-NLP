@@ -321,7 +321,10 @@ async def mainfunction(info: Info):
     info = info.dict()
 
     print("-------------------------", info)
-    google_similarity_score = google_search_result(info['sus'])
+    try: 
+        google_similarity_score = google_search_result(info['sus'])
+    except:
+        google_similarity_score = 0
     # Type 1 is file upload else its normal
     similarity_score = printing_similarity(info['og'], info['sus'], info['type'])
     # , "google_similarity_score": google_similarity_score
