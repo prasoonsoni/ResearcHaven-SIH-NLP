@@ -26,10 +26,12 @@ nltk.download('wordnet')
 nltk.download('omw-1.4')
 nltk.download('averaged_perceptron_tagger')
 
-my_api_key = "AIzaSyDaS_yp6jSkBET9Z5ozTpjfFtb6C2pvYB8"
-my_cse_id = "037c2615c9b2e4e0f"
+# my_api_key = "AIzaSyDaS_yp6jSkBET9Z5ozTpjfFtb6C2pvYB8"
+# my_cse_id = "037c2615c9b2e4e0f"
+my_api_key = "AIzaSyCHee8_tp0jA6i4Ui7IrLR6SE_6RxqD0Wo"
+my_cse_id = "6158cb9ed9567478b"
 
-def google_search_result(sus):
+def google_search_result(sus,type):
     if type == 1:
         # join values of sus dictionary to str
         sus = sus['data']
@@ -56,42 +58,49 @@ def google_search_result(sus):
         return diff
 
     def calculate_score(confidence):
-        mean = round(statistics.mean(confidence), 2)
+        mean = round(statistics.mean(list(confidence.values())), 2)
+        # sort confidence based on value
+        confidence = dict(sorted(confidence.items(), key=lambda x: x[1], reverse=True))
         print('Average Score: ', mean)
-        if 1.0 in confidence:
-            return 1
+        # check if any value in confidence is greater than 0.9
+        if any(x > 0.9 for x in confidence.values()):
+            confidence=dict(list(confidence.items())[:10])
+            return 1, dict(list(confidence.items())[:10])
         elif mean >= 0.50:
-            return mean
+            return mean, dict(list(confidence.items())[:10])
         else:
-            return mean
+            return mean, dict(list(confidence.items())[:10])
 
     data = sus.split()
     chunks = list()
-    end=30
+    end=20
     start = 0
     while end < len(data):
         chunk = ' '.join(data[start:end])
         chunks.append(chunk)
-        end = end + 30
-        start = start + 30
+        end = end + 20
+        start = start + 2
         if end > len(data):
             end = len(data)
             chunk = data[start:end]
             chunks.append(chunk)
-    confidence = []
+    confidence = {}
     itr = 1
     for chunk in chunks:
         print("chunk: ",chunk)
-        if itr > 25:
+        if itr > 1:
             break
         response = google_search(str(chunk), my_api_key, my_cse_id)
         num_results = response.get('searchInformation').get('totalResults')
         if num_results != '0':
             for item in response.get('items'):
+                print('item: ',item)
                 web_snippet = ''.join(item['snippet'][0:203])
                 print("web_snippet: ",web_snippet)
-                confidence.append(snippet_confidence(web_snippet, str(chunk)))
+                confidence[item['link']] = snippet_confidence(web_snippet, chunk)
+                # confidence.append(snippet_confidence(web_snippet, str(chunk)))
         itr = itr + 1
+        print("confidence: ",confidence)
     return calculate_score(confidence)
 
 def level1_check(sus, og):
@@ -309,6 +318,9 @@ class Info(BaseModel):
     sus: dict
     type:int
 
+class urlresponse(BaseModel):
+    url: str
+    similarity: float
 
 @app.post("/test/")
 def func():
@@ -320,18 +332,33 @@ async def mainfunction(info: Info):
 
     info = info.dict()
 
-    print("-------------------------", info)
-    try: 
-        google_similarity_score = google_search_result(info['sus'])
-    except:
-        google_similarity_score = 0
+    # print("-------------------------", info)
     # Type 1 is file upload else its normal
     similarity_score = printing_similarity(info['og'], info['sus'], info['type'])
     # , "google_similarity_score": google_similarity_score
-    print(google_similarity_score)
-    return {"similarity_score": similarity_score, "google_similarity_score": google_similarity_score}
+
+    return {"similarity_score": similarity_score}
+
 @app.post("/level1plagiarism/")
 async def func(info:Info):
     info = info.dict()
     score = level1_check(info['sus'], info['og']);
     return score
+
+@app.post("/level0googleplagiarism/")
+async def func(info:Info):
+
+    info = info.dict()
+
+    print("-------------------------", info)
+    try: 
+        google_similarity_score, matched_url = google_search_result(info['sus'],info['type'])
+        # create urlresponse object list and return it
+        urlresponse_list = []
+        for i,j in matched_url.items():
+            urlresponse_list.append(urlresponse(url=i, similarity=j))
+    except:
+        google_similarity_score = 0
+        urlresponse_list = []
+    return {"google_similarity_score": google_similarity_score, "urlresponse_list": urlresponse_list}
+    
