@@ -215,21 +215,19 @@ def printing_similarity(og, sus, type):
         suslen = len(sus_words)
 
         sus_title = ' '.join(sus_words[0:20])
-        fivepercent = int(suslen*5/100)
-        sus_ps_obj = ' '.join(sus_words[20:fivepercent])
+        fifteenpercent = int(suslen*15/100)
+        sus_ps_obj = ' '.join(sus_words[20:fifteenpercent])
 
 
         kw_extractor = yake.KeywordExtractor(top=10, stopwords=None)
         keywords = kw_extractor.extract_keywords(sus)
         keywords = ", ".join(list(dict(keywords).keys()))
         sus_keywords = keywords
-        sevenpercent = int(suslen*7/100)
-        sus_introduction = ' '.join(sus_words[fivepercent+1:fivepercent + sevenpercent])
-        fortyfivepercent = int(suslen*45/100)
-        sus_proposed_method = ' '.join(sus_words[fivepercent + sevenpercent + 1: fortyfivepercent + fivepercent + sevenpercent])
-        thirtyeightpercent = int(suslen*38/100)
-        # sus_evaluation_result = ' '.join(sus_words[fortyfivepercent + fivepercent + sevenpercent + 1: thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent])
-        # sus_conclusion = ' '.join(sus_words[thirtyeightpercent + fortyfivepercent + fivepercent + sevenpercent + 1:])
+        sus_introduction = ' '.join(sus_words[fifteenpercent+1:fifteenpercent + fifteenpercent])
+        twentyfivepercent = int(suslen*25/100)
+        sus_literature_review = ' '.join(sus_words[fifteenpercent+fifteenpercent+1:fifteenpercent+fifteenpercent+twentyfivepercent])
+        thirtyfivepercent = int(suslen*35/100)
+        sus_proposed_method = ' '.join(sus_words[fifteenpercent+fifteenpercent+twentyfivepercent+1:fifteenpercent+fifteenpercent+twentyfivepercent+thirtyfivepercent])
     else: 
         sus_title = sus['sus_title']
         sus_ps_obj = sus['sus_ps_obj']
