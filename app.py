@@ -26,15 +26,16 @@ nltk.download('wordnet')
 nltk.download('omw-1.4')
 nltk.download('averaged_perceptron_tagger')
 
-# my_api_key = "AIzaSyDaS_yp6jSkBET9Z5ozTpjfFtb6C2pvYB8"
+# # my_api_key = "AIzaSyDaS_yp6jSkBET9Z5ozTpjfFtb6C2pvYB8"
 my_cse_id = "037c2615c9b2e4e0f"
-# my_api_key = "AIzaSyCHee8_tp0jA6i4Ui7IrLR6SE_6RxqD0Wo"
-# my_cse_id = "6158cb9ed9567478b"
-# my_api_key = "AIzaSyBFz93EhgN2_lOXTSEec26Cc-uja0Tr-9g"
-# my_cse_id = "6158cb9ed9567478b"
-my_api_key = "AIzaSyBzLQiTsvKVY_HlF7qDn0o7OO-_HD-iyDc"
+# # my_api_key = "AIzaSyCHee8_tp0jA6i4Ui7IrLR6SE_6RxqD0Wo"
+# # my_cse_id = "6158cb9ed9567478b"
+# # my_api_key = "AIzaSyBFz93EhgN2_lOXTSEec26Cc-uja0Tr-9g"
+# # my_cse_id = "6158cb9ed9567478b"
+# my_api_key = "AIzaSyBzLQiTsvKVY_HlF7qDn0o7OO-_HD-iyDc"
 
-def google_search_result(sus,type):
+def google_search_result(sus,type,apikey):
+    my_api_key = apikey
     if type == 1:
         # join values of sus dictionary to str
         sus = sus['data']
@@ -329,11 +330,17 @@ app.add_middleware(
 class Info(BaseModel):
     og: dict
     sus: dict
-    type:int
+    type: int
 
 class urlresponse(BaseModel):
     url: str
     similarity: float
+
+class Info1(BaseModel):
+    og: dict
+    sus: dict
+    type: int
+    apikey: str
 
 @app.post("/test/")
 def func():
@@ -359,13 +366,13 @@ async def func(info:Info):
     return score
 
 @app.post("/level0googleplagiarism/")
-async def func(info:Info):
+async def func(info1:Info1):
 
-    info = info.dict()
+    info1 = info1.dict()
 
-    print("-------------------------", info)
+    print("-------------------------", info1)
     try: 
-        google_similarity_score, matched_url = google_search_result(info['sus'],info['type'])
+        google_similarity_score, matched_url = google_search_result(info1['sus'],info1['type'],info1['apikey'])
         # create urlresponse object list and return it
         urlresponse_list = []
         for i,j in matched_url.items():
