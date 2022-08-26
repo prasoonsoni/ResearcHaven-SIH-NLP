@@ -27,11 +27,12 @@ nltk.download('omw-1.4')
 nltk.download('averaged_perceptron_tagger')
 
 # my_api_key = "AIzaSyDaS_yp6jSkBET9Z5ozTpjfFtb6C2pvYB8"
-# my_cse_id = "037c2615c9b2e4e0f"
+my_cse_id = "037c2615c9b2e4e0f"
 # my_api_key = "AIzaSyCHee8_tp0jA6i4Ui7IrLR6SE_6RxqD0Wo"
 # my_cse_id = "6158cb9ed9567478b"
-my_api_key = "AIzaSyBFz93EhgN2_lOXTSEec26Cc-uja0Tr-9g"
-my_cse_id = "6158cb9ed9567478b"
+# my_api_key = "AIzaSyBFz93EhgN2_lOXTSEec26Cc-uja0Tr-9g"
+# my_cse_id = "6158cb9ed9567478b"
+my_api_key = "AIzaSyBzLQiTsvKVY_HlF7qDn0o7OO-_HD-iyDc"
 
 def google_search_result(sus,type):
     if type == 1:
